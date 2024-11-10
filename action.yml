@@ -12,6 +12,9 @@ inputs:
 
 runs:
   using: "composite"
+  outputs:
+    latest_version:
+      description: "The latest Ruby version detected."
   steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -23,12 +26,15 @@ runs:
         bundler-cache: true
 
     - name: Fetch latest Ruby version
-      run: ./fetch_latest_ruby.sh
-      shell: bash
-      working-directory: ${{ github.action_path }}/scripts
+      id: fetch_ruby
+      run: |
+        LATEST_VERSION=$(curl -s https://www.ruby-lang.org/en/downloads/ | grep -oP 'Ruby \K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        echo "Latest Ruby version detected: $LATEST_VERSION"
+        echo "LATEST_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
+        echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
 
     - name: Update Ruby version in files
-      run: ./update_files.sh
+      run: ./scripts/update_files.sh
       shell: bash
       working-directory: ${{ github.action_path }}/scripts
 
@@ -41,13 +47,22 @@ runs:
         fi
       shell: bash
 
+    - name: Commit changes
+      run: |
+        git config --local user.name "github-actions[bot]"
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git reset
+        git add .ruby-version Gemfile Gemfile.lock Dockerfile .github/workflows/*
+        git diff --quiet && git diff --staged --quiet || git commit -am "Upgrade Ruby to ${{ steps.fetch_ruby.outputs.latest_version }}"
+      shell: bash
+
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v7
+      uses: peter-evans/create-pull-request@v5
       with:
         token: ${{ inputs.repo-token }}
-        title: "Upgrade Ruby to ${LATEST_VERSION}"
+        title: "Upgrade Ruby to ${{ steps.fetch_ruby.outputs.latest_version }}"
         body: |
-          This pull request updates the Ruby version to the latest stable release: **${LATEST_VERSION}**.
-        branch: "ruby-upgrade/${LATEST_VERSION}"
-        commit-message: "Upgrade Ruby to ${LATEST_VERSION}"
+          This pull request updates the Ruby version to the latest stable release: **${{ steps.fetch_ruby.outputs.latest_version }}**.
+        branch: "ruby-upgrade/${{ steps.fetch_ruby.outputs.latest_version }}"
+        commit-message: "Upgrade Ruby to ${{ steps.fetch_ruby.outputs.latest_version }}"
         delete-branch: true
