@@ -33,7 +33,12 @@ runs:
       shell: bash
 
     - name: Install dependencies
-      run: bundle install
+      run: |
+        if [ -f "Gemfile" ]; then
+          bundle install
+        else
+          echo "Gemfile not found. Skipping bundle install."
+        fi
       shell: bash
 
     - name: Commit changes
