@@ -1,0 +1,15 @@
+name: Upgrade Ruby
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0" # Runs weekly
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Ruby Upgrade Action
+        uses: andrew/ruby-upgrade-action@main
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
