@@ -1,5 +1,3 @@
-Here’s the updated README with the MIT license:
-
 # Ruby Upgrade Action
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -56,10 +54,11 @@ This workflow runs weekly and can also be triggered manually. You can customize 
 ## Example
 
 This action will:
-	1.	Fetch the latest Ruby version from the Ruby website.
-	2.	Update .ruby-version, Gemfile, Dockerfile, and GitHub Actions YAML files.
-	3.	Run bundle install and execute the test suite.
-	4.	Commit the changes and open a pull request.
+
+1. Fetch the latest Ruby version from the Ruby website.
+2. Update .ruby-version, Gemfile, Dockerfile, and GitHub Actions YAML files.
+3. Run bundle install and execute the test suite.
+4. Commit the changes and open a pull request.
 
 ## Customization
 
