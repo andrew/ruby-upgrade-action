@@ -1,3 +1,4 @@
+# action.yml
 name: "Ruby Upgrade Action"
 description: "Automatically upgrade Ruby version in .ruby-version, Gemfile, Dockerfile, and GitHub Actions workflows."
 author: "Andrew Nesbitt"
@@ -6,19 +7,22 @@ branding:
   color: "red"
 inputs:
   repo-token:
-    description: "GitHub token"
+    description: "GitHub token for creating pull requests."
     required: true
   ruby-base-image:
-    description: "Base Docker image (e.g., ruby:* or ruby:*alpine)"
+    description: "Base Docker image (e.g., ruby:* or ruby:*alpine)."
     default: "ruby:*-alpine"
-outputs:
-  latest-version:
-    description: "The latest Ruby version detected"
 runs:
   using: "composite"
   steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3.5'
+        bundler-cache: true
 
     - name: Fetch latest Ruby version
       run: ./scripts/fetch_latest_ruby.sh
@@ -28,6 +32,25 @@ runs:
       run: ./scripts/update_files.sh
       shell: bash
 
-    - name: Run tests
-      run: ./scripts/run_tests.sh
+    - name: Install dependencies
+      run: bundle install
       shell: bash
+
+    - name: Commit changes
+      run: |
+        git config --local user.name "github-actions[bot]"
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "Upgrade Ruby to ${LATEST_VERSION}"
+        git push
+      shell: bash
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ inputs.repo-token }}
+        title: "Upgrade Ruby to ${LATEST_VERSION}"
+        body: |
+          This pull request updates the Ruby version to the latest stable release: **${LATEST_VERSION}**.
+          Please review the changes and ensure all tests pass.
+        branch: "ruby-upgrade/${LATEST_VERSION}"
