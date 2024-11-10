@@ -1,0 +1,30 @@
+name: "Ruby Upgrade Action"
+description: "Automatically upgrade Ruby version in .ruby-version, Gemfile, Dockerfile, and GitHub Actions workflows."
+author: "Andrew Nesbitt"
+inputs:
+  repo-token:
+    description: "GitHub token"
+    required: true
+  ruby-base-image:
+    description: "Base Docker image (e.g., ruby:* or ruby:*alpine)"
+    default: "ruby:*-alpine"
+outputs:
+  latest-version:
+    description: "The latest Ruby version detected"
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Fetch latest Ruby version
+      run: ./scripts/fetch_latest_ruby.sh
+      shell: bash
+
+    - name: Update Ruby version in files
+      run: ./scripts/update_files.sh
+      shell: bash
+
+    - name: Run tests
+      run: ./scripts/run_tests.sh
+      shell: bash
