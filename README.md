@@ -37,6 +37,10 @@ on:
   schedule:
     - cron: "0 0 * * 0" # Runs weekly
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   upgrade:
     runs-on: ubuntu-latest
