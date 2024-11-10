@@ -32,7 +32,7 @@ runs:
       shell: bash
 
     - name: Update Ruby version in files
-      run: ./scripts/update_files.sh
+      run: ./update_files.sh
       shell: bash
       working-directory: ${{ github.action_path }}/scripts
 
