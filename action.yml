@@ -5,11 +5,6 @@ branding:
   icon: "refresh-ccw"
   color: "red"
 
-inputs:
-  repo-token:
-    description: "GitHub token for creating pull requests."
-    required: true
-
 runs:
   using: "composite"
   steps:
@@ -44,6 +39,7 @@ runs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v7
       with:
+        token: ${{ secrets.PAT }}
         title: "Upgrade Ruby to ${LATEST_VERSION}"
         body: |
           This pull request updates the Ruby version to the latest stable release: **${LATEST_VERSION}**.
