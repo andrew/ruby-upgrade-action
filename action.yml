@@ -23,14 +23,14 @@ runs:
         bundler-cache: true
 
     - name: Fetch latest Ruby version
-      run: ./scripts/fetch_latest_ruby.sh
+      run: ./fetch_latest_ruby.sh
       shell: bash
-      working-directory: ./action
+      working-directory: ${{ github.action_path }}/scripts
 
     - name: Update Ruby version in files
-      run: ./scripts/update_files.sh
+      run: ./update_files.sh
       shell: bash
-      working-directory: ./action
+      working-directory: ${{ github.action_path }}/scripts
 
     - name: Install dependencies
       run: |
