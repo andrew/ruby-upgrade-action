@@ -2,7 +2,7 @@ name: "Ruby Upgrade Action"
 description: "Automatically upgrade Ruby version in .ruby-version, Gemfile, Dockerfile, and GitHub Actions workflows."
 author: "Andrew Nesbitt"
 branding:
-  icon: "refresh"
+  icon: "refresh-ccw"
   color: "red"
 inputs:
   repo-token:
