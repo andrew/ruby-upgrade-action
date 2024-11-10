@@ -1,17 +1,14 @@
-# action.yml
 name: "Ruby Upgrade Action"
 description: "Automatically upgrade Ruby version in .ruby-version, Gemfile, Dockerfile, and GitHub Actions workflows."
 author: "Andrew Nesbitt"
 branding:
   icon: "refresh-ccw"
   color: "red"
+
 inputs:
   repo-token:
     description: "GitHub token for creating pull requests."
     required: true
-  ruby-base-image:
-    description: "Base Docker image (e.g., ruby:* or ruby:*alpine)."
-    default: "ruby:*-alpine"
 runs:
   using: "composite"
   steps:
@@ -39,16 +36,6 @@ runs:
         else
           echo "Gemfile not found. Skipping bundle install."
         fi
-      shell: bash
-
-    - name: Commit changes
-      run: |
-        git config --local user.name "github-actions[bot]"
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git add .
-        git commit -m "Upgrade Ruby to ${LATEST_VERSION}"
-        git push
-      shell: bash
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v5
@@ -57,5 +44,6 @@ runs:
         title: "Upgrade Ruby to ${LATEST_VERSION}"
         body: |
           This pull request updates the Ruby version to the latest stable release: **${LATEST_VERSION}**.
-          Please review the changes and ensure all tests pass.
         branch: "ruby-upgrade/${LATEST_VERSION}"
+        commit-message: "Upgrade Ruby to ${LATEST_VERSION}"
+        delete-branch: true
