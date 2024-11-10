@@ -9,6 +9,7 @@ inputs:
   repo-token:
     description: "GitHub token for creating pull requests."
     required: true
+
 runs:
   using: "composite"
   steps:
@@ -24,10 +25,12 @@ runs:
     - name: Fetch latest Ruby version
       run: ./scripts/fetch_latest_ruby.sh
       shell: bash
+      working-directory: ./action
 
     - name: Update Ruby version in files
       run: ./scripts/update_files.sh
       shell: bash
+      working-directory: ./action
 
     - name: Install dependencies
       run: |
