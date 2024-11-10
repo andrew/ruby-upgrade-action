@@ -51,16 +51,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-## Inputs
-
-Input	Description	Required	Default
-repo-token	GitHub token for creating commits and pull requests.	true	N/A
-ruby-base-image	Base image for Dockerfile (e.g., ruby:*-alpine).	false	ruby:*-alpine
-
-## Outputs
-
-Output	Description
-latest-version	The latest Ruby version detected
+This workflow runs weekly and can also be triggered manually. You can customize the schedule by modifying the cron expression.
 
 ## Example
 
