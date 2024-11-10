@@ -32,6 +32,7 @@ runs:
         echo "Latest Ruby version detected: $LATEST_VERSION"
         echo "LATEST_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
         echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+      shell: bash
 
     - name: Update Ruby version in files
       run: ./scripts/update_files.sh
