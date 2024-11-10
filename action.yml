@@ -42,9 +42,8 @@ runs:
       shell: bash
 
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v7
       with:
-        token: ${{ inputs.repo-token }}
         title: "Upgrade Ruby to ${LATEST_VERSION}"
         body: |
           This pull request updates the Ruby version to the latest stable release: **${LATEST_VERSION}**.
