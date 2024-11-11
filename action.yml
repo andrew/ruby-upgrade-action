@@ -65,7 +65,7 @@ runs:
       shell: bash
       run: |
         if [ -f Gemfile ]; then
-          bundle update --ruby --bundler
+          bundle update --ruby
           echo "Updated Gemfile and Gemfile.lock with new Ruby version"
         fi
 
