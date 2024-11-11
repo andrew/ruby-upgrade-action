@@ -2,7 +2,7 @@
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**Ruby Upgrade Action** is a GitHub Action that automatically upgrades the Ruby version in your repository. It updates the Ruby version in `.ruby-version`, `Gemfile`, `Dockerfile`, and GitHub Actions workflows. This action can be easily reused across multiple projects, simplifying the process of keeping Ruby dependencies up to date.
+**Ruby Upgrade Action** is a GitHub Action that automatically upgrades the Ruby version in your repository. It updates the Ruby version in `.ruby-version`, `Gemfile`, `Dockerfile`. This action can be easily reused across multiple projects, simplifying the process of keeping Ruby dependencies up to date.
 
 ## Features
 
@@ -11,7 +11,6 @@
   - `.ruby-version`
   - `Gemfile` (if the Ruby version is specified)
   - `Dockerfile` (if using `ruby:*` base image)
-  - GitHub Actions workflows (using `ruby-version`)
 - Runs tests after upgrading Ruby to ensure compatibility.
 - Creates a pull request with the changes.
 
