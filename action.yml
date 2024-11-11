@@ -110,4 +110,4 @@ runs:
           --base main \
           --head ${{ inputs.branch-name }}
       env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ inputs.github-token }}
