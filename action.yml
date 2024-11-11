@@ -54,7 +54,7 @@ runs:
 
         if [ -f Gemfile ]; then
           # Update Gemfile Ruby version
-          sed -i.bak "s/^ruby '[^']*'/ruby '${{ env.TARGET_RUBY_VERSION }}'/" Gemfile
+          sed -i.bak "s/^ruby [\"'][^\"']*[\"']/ruby '${{ env.TARGET_RUBY_VERSION }}'/" Gemfile
           rm Gemfile.bak
           
           # Now run bundle update
