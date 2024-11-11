@@ -52,6 +52,11 @@ runs:
           echo "Updated .ruby-version file"
         fi
 
+        if [ -f .tool-versions ]; then
+          sed -i'' -e "s/^ruby .*/ruby ${{ env.TARGET_RUBY_VERSION }}/" .tool-versions
+          echo "Updated .tool-versions file"
+        fi
+
         if [ -f Gemfile ]; then
           # Update Gemfile Ruby version
           sed -i.bak "s/^ruby [\"'][^\"']*[\"']/ruby '${{ env.TARGET_RUBY_VERSION }}'/" Gemfile
@@ -87,8 +92,6 @@ runs:
         if git ls-remote --exit-code --heads origin "${{ inputs.branch-name }}"; then
           git push origin --delete "${{ inputs.branch-name }}"
         fi
-        git fetch origin main
-        git checkout origin/main -- .github/workflows
         git add .
         git commit -m "Update Ruby to version ${{ env.TARGET_RUBY_VERSION }}"
         git push origin ${{ inputs.branch-name }}
