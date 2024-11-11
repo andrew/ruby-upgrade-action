@@ -47,6 +47,11 @@ runs:
     - name: Update Ruby versions
       shell: bash
       run: |
+        if [ -f .ruby-version ]; then
+          echo "${{ env.TARGET_RUBY_VERSION }}" > .ruby-version
+          echo "Updated .ruby-version file"
+        fi
+
         if [ -f Gemfile ]; then
           # Update Gemfile Ruby version
           sed -i.bak "s/^ruby '[^']*'/ruby '${{ env.TARGET_RUBY_VERSION }}'/" Gemfile
@@ -55,11 +60,6 @@ runs:
           # Now run bundle update
           bundle update --ruby
           echo "Updated Gemfile and dependencies"
-        fi
-
-        if [ -f .ruby-version ]; then
-          echo "${{ env.TARGET_RUBY_VERSION }}" > .ruby-version
-          echo "Updated .ruby-version file"
         fi
 
         if [ -f Dockerfile ]; then
