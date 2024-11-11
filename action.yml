@@ -33,7 +33,7 @@ runs:
       if: inputs.target-ruby-version == ''
       shell: bash
       run: |
-        LATEST_RUBY=$(curl -s https://api.github.com/repos/ruby/ruby/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+        LATEST_RUBY=$(curl -s https://api.github.com/repos/ruby/ruby/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/' | tr '_' '.')
         echo "TARGET_RUBY_VERSION=$LATEST_RUBY" >> $GITHUB_ENV
 
     - name: Set specified Ruby version
