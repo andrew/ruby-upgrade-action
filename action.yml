@@ -44,29 +44,28 @@ runs:
       run: |
         git checkout -b ${{ inputs.branch-name }}
 
-    - name: Update .ruby-version file
+    - name: Update Ruby versions
       shell: bash
       run: |
+        if [ -f Gemfile ]; then
+          # Update Gemfile Ruby version
+          sed -i.bak "s/^ruby '[^']*'/ruby '${{ env.TARGET_RUBY_VERSION }}'/" Gemfile
+          rm Gemfile.bak
+          
+          # Now run bundle update
+          bundle update --ruby
+          echo "Updated Gemfile and dependencies"
+        fi
+
         if [ -f .ruby-version ]; then
           echo "${{ env.TARGET_RUBY_VERSION }}" > .ruby-version
           echo "Updated .ruby-version file"
         fi
 
-    - name: Update Dockerfile
-      shell: bash
-      run: |
         if [ -f Dockerfile ]; then
           sed -i.bak "s/FROM ruby:[0-9.]*\(-.*\)\?/FROM ruby:${{ env.TARGET_RUBY_VERSION }}\1/" Dockerfile
           rm Dockerfile.bak
           echo "Updated Dockerfile"
-        fi
-
-    - name: Update Ruby version and dependencies
-      shell: bash
-      run: |
-        if [ -f Gemfile ]; then
-          bundle update --ruby
-          echo "Updated Gemfile and Gemfile.lock with new Ruby version"
         fi
 
     - name: Check for changes
