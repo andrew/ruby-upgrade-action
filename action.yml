@@ -6,65 +6,120 @@ branding:
   color: "red"
 
 inputs:
-  repo-token:
-    description: "GitHub token for creating pull requests."
+  target-ruby-version:
+    description: 'Target Ruby version to upgrade to (e.g., 3.3.0). If not specified, latest stable version will be used'
+    required: false
+  github-token:
+    description: 'GitHub token for creating pull requests'
     required: true
+    default: ${{ github.token }}
+  branch-name:
+    description: 'Name of the branch to create for the upgrade'
+    required: false
+    default: 'ruby-version-upgrade'
 
 runs:
-  using: "composite"
-
+  using: composite
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - name: Check out code
+      uses: actions/checkout@v4
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.3.5'
-        bundler-cache: true
 
-    - name: Fetch latest Ruby version
-      id: fetch_ruby
-      run: |
-        LATEST_VERSION=$(curl -s https://www.ruby-lang.org/en/downloads/ | grep -oP 'Ruby \K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-        echo "Latest Ruby version detected: $LATEST_VERSION"
-        echo "LATEST_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
+    - name: Determine latest Ruby version
+      if: inputs.target-ruby-version == ''
       shell: bash
-
-    - name: Update Ruby version in files
-      run: ./update_files.sh
-      shell: bash
-      working-directory: ${{ github.action_path }}/scripts
-
-    - name: Install dependencies
       run: |
-        if [ -f "Gemfile" ]; then
-          bundle install
-        else
-          echo "Gemfile not found. Skipping bundle install."
+        LATEST_RUBY=$(curl -s https://raw.githubusercontent.com/ruby/www.ruby-lang.org/master/_data/releases.yml | grep 'version:' | head -n1 | cut -d'"' -f2)
+        echo "TARGET_RUBY_VERSION=$LATEST_RUBY" >> $GITHUB_ENV
+
+    - name: Set specified Ruby version
+      if: inputs.target-ruby-version != ''
+      shell: bash
+      run: |
+        echo "TARGET_RUBY_VERSION=${{ inputs.target-ruby-version }}" >> $GITHUB_ENV
+
+    - name: Create upgrade branch
+      shell: bash
+      run: |
+        git checkout -b ${{ inputs.branch-name }}
+
+    - name: Update .ruby-version file
+      shell: bash
+      run: |
+        if [ -f .ruby-version ]; then
+          echo "${{ env.TARGET_RUBY_VERSION }}" > .ruby-version
+          echo "Updated .ruby-version file"
         fi
+
+    - name: Update Gemfile
       shell: bash
+      run: |
+        if [ -f Gemfile ]; then
+          sed -i.bak "s/^ruby '[^']*'/ruby '${{ env.TARGET_RUBY_VERSION }}'/" Gemfile
+          rm Gemfile.bak
+          echo "Updated Gemfile"
+        fi
+
+    - name: Update Dockerfile
+      shell: bash
+      run: |
+        if [ -f Dockerfile ]; then
+          sed -i.bak "s/FROM ruby:[0-9.]*\(-.*\)\?/FROM ruby:${{ env.TARGET_RUBY_VERSION }}\1/" Dockerfile
+          rm Dockerfile.bak
+          echo "Updated Dockerfile"
+        fi
+
+    - name: Update Gemfile.lock
+      shell: bash
+      run: |
+        if [ -f Gemfile.lock ]; then
+          bundle update --bundler
+          bundle update
+          echo "Updated Gemfile.lock"
+        fi
+
+    - name: Check for changes
+      shell: bash
+      id: check_changes
+      run: |
+        if [[ -n "$(git status --porcelain)" ]]; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Commit changes
-      run: |
-        git config --local user.name "github-actions[bot]"
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git reset
-        git add .ruby-version Gemfile Gemfile.lock Dockerfile .github/workflows/*
-        git diff --cached --quiet || git commit -m "Upgrade Ruby to ${LATEST_VERSION}"
+      if: steps.check_changes.outputs.has_changes == 'true'
       shell: bash
-      env:
-        LATEST_VERSION: ${{ env.LATEST_VERSION }}
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add .
+        git commit -m "Update Ruby to version ${{ env.TARGET_RUBY_VERSION }}"
+        git push origin ${{ inputs.branch-name }}
 
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5
-      with:
-        token: ${{ inputs.repo-token }}
-        title: "Upgrade Ruby to ${LATEST_VERSION}"
-        body: |
-          This pull request updates the Ruby version to the latest stable release: **${LATEST_VERSION}**.
-        branch: "ruby-upgrade/${LATEST_VERSION}"
-        commit-message: "Upgrade Ruby to ${LATEST_VERSION}"
-        delete-branch: true
+      if: steps.check_changes.outputs.has_changes == 'true'
+      shell: bash
+      run: |
+        PR_BODY="This PR updates the Ruby version to ${{ env.TARGET_RUBY_VERSION }}.
+
+        Changes made:
+        - Updated .ruby-version file (if present)
+        - Updated Gemfile ruby version (if present)
+        - Updated Dockerfile ruby version (if present)
+        - Updated Gemfile.lock dependencies
+
+        Please review and test before merging."
+        
+        gh pr create \
+          --title "Update Ruby to version ${{ env.TARGET_RUBY_VERSION }}" \
+          --body "$PR_BODY" \
+          --base main \
+          --head ${{ inputs.branch-name }}
       env:
-        LATEST_VERSION: ${{ env.LATEST_VERSION }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
