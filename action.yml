@@ -24,23 +24,20 @@ runs:
     - name: Check out code
       uses: actions/checkout@v4
 
+    - name: Determine target Ruby version
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.target-ruby-version }}" ]; then
+          echo "TARGET_RUBY_VERSION=${{ inputs.target-ruby-version }}" >> $GITHUB_ENV
+        else
+          LATEST_RUBY=$(curl -s https://api.github.com/repos/ruby/ruby/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/' | tr '_' '.')
+          echo "TARGET_RUBY_VERSION=$LATEST_RUBY" >> $GITHUB_ENV
+        fi
+
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.3.5'
-
-    - name: Determine latest Ruby version
-      if: inputs.target-ruby-version == ''
-      shell: bash
-      run: |
-        LATEST_RUBY=$(curl -s https://api.github.com/repos/ruby/ruby/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/' | tr '_' '.')
-        echo "TARGET_RUBY_VERSION=$LATEST_RUBY" >> $GITHUB_ENV
-
-    - name: Set specified Ruby version
-      if: inputs.target-ruby-version != ''
-      shell: bash
-      run: |
-        echo "TARGET_RUBY_VERSION=${{ inputs.target-ruby-version }}" >> $GITHUB_ENV
+        ruby-version: ${{ env.TARGET_RUBY_VERSION }}
 
     - name: Create upgrade branch
       shell: bash
