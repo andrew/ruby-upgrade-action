@@ -104,6 +104,7 @@ runs:
 
         Changes made:
         - Updated .ruby-version file (if present)
+        - Updated .tool-versions file (if present)
         - Updated Gemfile ruby version (if present)
         - Updated Dockerfile ruby version (if present)
         - Updated Gemfile.lock dependencies
