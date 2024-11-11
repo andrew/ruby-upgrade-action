@@ -52,15 +52,6 @@ runs:
           echo "Updated .ruby-version file"
         fi
 
-    - name: Update Gemfile
-      shell: bash
-      run: |
-        if [ -f Gemfile ]; then
-          sed -i.bak "s/^ruby '[^']*'/ruby '${{ env.TARGET_RUBY_VERSION }}'/" Gemfile
-          rm Gemfile.bak
-          echo "Updated Gemfile"
-        fi
-
     - name: Update Dockerfile
       shell: bash
       run: |
@@ -70,13 +61,12 @@ runs:
           echo "Updated Dockerfile"
         fi
 
-    - name: Update Gemfile.lock
+    - name: Update Ruby version and dependencies
       shell: bash
       run: |
-        if [ -f Gemfile.lock ]; then
-          bundle update --bundler
-          bundle install
-          echo "Updated Gemfile.lock"
+        if [ -f Gemfile ]; then
+          bundle update --ruby --bundler
+          echo "Updated Gemfile and Gemfile.lock with new Ruby version"
         fi
 
     - name: Check for changes
@@ -111,7 +101,9 @@ runs:
         - Updated Dockerfile ruby version (if present)
         - Updated Gemfile.lock dependencies
 
-        Please review and test before merging."
+        Please review and test before merging.
+        
+        Powered by [Ruby Upgrade Action](https://github.com/andrew/ruby-upgrade-action/)"
         
         gh pr create \
           --title "Update Ruby to version ${{ env.TARGET_RUBY_VERSION }}" \
