@@ -84,12 +84,9 @@ runs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        if git ls-remote --exit-code --heads origin "${{ inputs.branch-name }}"; then
-          git push origin --delete "${{ inputs.branch-name }}"
-        fi
         git add .
         git commit -m "Update Ruby to version ${{ env.TARGET_RUBY_VERSION }}"
-        git push origin ${{ inputs.branch-name }}
+        git push origin --delete ${{ inputs.branch-name }}
 
     - name: Create Pull Request
       if: steps.check_changes.outputs.has_changes == 'true'
