@@ -40,13 +40,13 @@ permissions:
   pull-requests: write
 
 jobs:
-  upgrade:
+  upgrade-ruby:
     runs-on: ubuntu-latest
     steps:
-      - name: Run Ruby Upgrade Action
-        uses: andrew/ruby-upgrade-action@main
+      - uses: actions/checkout@v4
+      - uses: andrew/ruby-upgrade-action@main
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 This workflow runs weekly and can also be triggered manually. You can customize the schedule by modifying the cron expression.
