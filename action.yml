@@ -62,7 +62,9 @@ runs:
           sed -i.bak "s/^ruby [\"'][^\"']*[\"']/ruby '${{ env.TARGET_RUBY_VERSION }}'/" Gemfile
           rm Gemfile.bak
           
-          # Now run bundle update
+          gem install bundler --no-document
+          
+          bundle install
           bundle update --ruby
           echo "Updated Gemfile and dependencies"
         fi
