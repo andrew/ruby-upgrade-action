@@ -20,6 +20,7 @@ This action requires:
 
 - A repository using Ruby with a `.ruby-version` or `.tool-versions`, `Gemfile`, and optionally a `Dockerfile`.
 - GitHub token (automatically provided by GitHub Actions as `GITHUB_TOKEN`).
+- Repository setting: "Allow GitHub Actions to create and approve pull requests" must be enabled in Settings → Actions → General → Workflow permissions.
 
 ## Usage
 
