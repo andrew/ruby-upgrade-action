@@ -27,6 +27,8 @@ runs:
   steps:
     - name: Check out code
       uses: actions/checkout@v6
+      with:
+        token: ${{ inputs.github-token }}
 
     - name: Determine target Ruby version
       shell: bash
