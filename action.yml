@@ -123,7 +123,7 @@ runs:
         - Updated .ruby-version file (if present)
         - Updated .tool-versions file (if present)
         - Updated Gemfile ruby version (if present)
-        - Updated "${{ inputs.target-ruby-version }}" ruby version (if present)
+        - Updated "${{ inputs.dockerfile-location }}" ruby version (if present)
         - Updated Gemfile.lock dependencies
         - Updated bundler to latest version
 
