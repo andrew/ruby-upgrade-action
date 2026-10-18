@@ -59,45 +59,43 @@ runs:
         git checkout -b ${{ inputs.branch-name }}
 
     - name: Update Ruby versions
-      shell: bash
-      run: |
-        if [ -f .ruby-version ]; then
-          echo "${{ env.TARGET_RUBY_VERSION }}" > .ruby-version
-          echo "Updated .ruby-version file"
-        fi
-
-        if [ -f .tool-versions ]; then
-          sed -i'' -e "s/^ruby .*/ruby ${{ env.TARGET_RUBY_VERSION }}/" .tool-versions
-          echo "Updated .tool-versions file"
-        fi
-
-        if [ -f Gemfile ]; then
-          # Update Gemfile Ruby version
-          sed -i.bak "s/^ruby [\"'][^\"']*[\"']/ruby '${{ env.TARGET_RUBY_VERSION }}'/" Gemfile
-          rm Gemfile.bak
-          
-          gem install bundler --no-document
-          bundle update --bundler
-
-          bundle install
-          bundle update --ruby
-          echo "Updated Gemfile and dependencies"
-        fi
-
-        if [ -f "${{ inputs.dockerfile-location }}" ]; then
-          sed -i.bak "s/FROM ruby:[0-9.]*\(-.*\)\?/FROM ruby:${{ env.TARGET_RUBY_VERSION }}\1/" "${{ inputs.dockerfile-location }}"
-          rm "${{ inputs.dockerfile-location }}".bak
-          echo "Updated "${{ inputs.dockerfile-location }}""
-        fi
-
-    - name: Check for changes
-      shell: bash
       id: check_changes
+      shell: ruby {0}
+      env:
+        TARGET_RUBY_VERSION: ${{ env.TARGET_RUBY_VERSION }}
+        DOCKERFILE_LOCATION: ${{ inputs.dockerfile-location }}
       run: |
-        if [[ -n "$(git status --porcelain)" ]]; then
-          echo "has_changes=true" >> $GITHUB_OUTPUT
-        else
-          echo "has_changes=false" >> $GITHUB_OUTPUT
+        files = {
+          '.ruby-version' => /\A(\s*)(\S+)/,
+          '.tool-versions' => /^(ruby[ \t]+)(\S+)/,
+          'Gemfile' => /^(ruby[ \t]+["'])([^"']+)/,
+          ENV.fetch('DOCKERFILE_LOCATION') => /(FROM ruby:)([0-9.]+)/
+        }
+        has_changes = false
+        files.each do |path, pattern|
+          next unless File.file?(path)
+
+          original = File.read(path)
+          updated = original.gsub(pattern) { "#{Regexp.last_match(1)}#{ENV.fetch('TARGET_RUBY_VERSION')}" }
+          next if original == updated
+
+          File.write(path, updated)
+          has_changes = true
+          puts "Updated #{path}"
+        end
+        File.open(ENV.fetch('GITHUB_OUTPUT'), 'a') { |file| file.puts "has_changes=#{has_changes}" }
+
+    - name: Update dependencies
+      if: steps.check_changes.outputs.has_changes == 'true'
+      shell: bash
+      run: |
+        if [ -f Gemfile ]; then
+          gem install bundler --no-document --no-prerelease
+          BUNDLER_VERSION=$(ruby -e 'puts Gem::Specification.find_all_by_name("bundler").reject { |spec| spec.version.prerelease? }.map(&:version).max')
+          bundle "_${BUNDLER_VERSION}_" update --bundler="$BUNDLER_VERSION"
+          bundle "_${BUNDLER_VERSION}_" install
+          bundle "_${BUNDLER_VERSION}_" update --ruby
+          echo "Updated Gemfile.lock and dependencies"
         fi
 
     - name: Commit changes
